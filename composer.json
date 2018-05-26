@@ -2,7 +2,7 @@
     "name": "jndrm/phpwoo",
     "description": "Speed up your php applications with swoole!",
     "keywords": ["phpwoo", "drmer", "swoole", "server"],
-    "license": "Apache 2.0",
+    "license": "MIT",
     "type": "library",
     "authors": [
         {
