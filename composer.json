@@ -1,0 +1,29 @@
+{
+    "name": "jndrm/phpwoo",
+    "description": "Speed up your php applications with swoole!",
+    "keywords": ["phpwoo", "drmer", "swoole", "server"],
+    "license": "Apache 2.0",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Donald",
+            "email": "donald@drmer.net"
+        }
+    ],
+    "require": {
+        "ext-swoole": "2.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Drmer\\Phpwoo": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Drmer\\Phpwoo\\Laravel\\PhpwooServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
