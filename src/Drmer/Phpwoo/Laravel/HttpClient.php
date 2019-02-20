@@ -59,7 +59,7 @@ class HttpClient
                 $files[$key] = new UploadedFile($file['tmp_name'], $file['name'], $file['type'], $file['size'], $file['error']);
             }
         }
-        $cookies = [];
+        $cookies = $req->cookie ?: [];
         $server = [
             'PATH_INFO' => array_get($req->server, 'path_info'),
         ];
@@ -75,7 +75,7 @@ class HttpClient
         $resp = $this->call(strtolower($req->server['request_method']), $requestUri, $params, $cookies, $files, $server, $content);
         return [
             'status' => $resp->getStatusCode(),
-            'headers' => $resp->headers->all(),
+            'headers' => $resp->headers,
             'body' => $resp->getContent(),
         ];
     }
@@ -119,7 +119,6 @@ class HttpClient
         $response = $kernel->handle(
             $request = Request::createFromBase($symfonyRequest)
         );
-
         $kernel->terminate($request, $response);
 
         return $response;

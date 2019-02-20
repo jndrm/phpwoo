@@ -26,8 +26,11 @@ abstract class BaseServer
 	public function sendResp($resp, $res)
     {
         $resp->status($res['status']);
-        foreach ($res['headers'] as $key => $values) {
+        foreach ($res['headers']->all() as $key => $values) {
             if (in_array(strtolower($key), ['content-length', 'server', 'x-powered-by'])) {
+                continue;
+            }
+            if (strtolower($key) == 'set-cookie') {
                 continue;
             }
             if (count($values) == 1) {
@@ -35,6 +38,17 @@ abstract class BaseServer
             } else {
                 $resp->header($key, implode(";", $values));
             }
+        }
+        foreach ($res['headers']->getCookies() as $cookie) {
+            $resp->cookie(
+                $cookie->getName(),
+                $cookie->getValue(),
+                $cookie->getExpiresTime(),
+                $cookie->getPath(),
+                $cookie->getDomain(),
+                $cookie->isSecure(),
+                $cookie->isHttpOnly()
+            );
         }
         $resp->header('server', $this->getName());
         $resp->end($res['body']);
