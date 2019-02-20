@@ -137,7 +137,7 @@ class HttpClient
             $uri = substr($uri, 1);
         }
 
-        if (! Str::startsWith($uri, 'http')) {
+        if (!Str::startsWith($uri, 'http')) {
             $uri = env('APP_URL', 'http://localhost').'/'.$uri;
         }
 
