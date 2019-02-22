@@ -1,5 +1,5 @@
 {
-    "name": "jndrm/phpwoo",
+    "name": "drmer/swoole",
     "description": "Speed up your php applications with swoole!",
     "keywords": ["phpwoo", "drmer", "swoole", "server"],
     "license": "MIT",
@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "ext-swoole": "4.*"
+        "ext-swoole": "4.*|2.*"
     },
     "autoload": {
         "psr-0": {
