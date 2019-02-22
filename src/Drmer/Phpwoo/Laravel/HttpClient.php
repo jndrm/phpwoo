@@ -189,8 +189,6 @@ class HttpClient
 
     protected function reset()
     {
-        $this->flushSession();
-
         $resets = $this->app['config']->get('phpwoo.resets', []);
         foreach ($resets as $abstract) {
             if (is_subclass_of($abstract, ServiceProvider::class)) {
