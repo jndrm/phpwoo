@@ -191,7 +191,7 @@ class HttpClient
     {
         $this->flushSession();
 
-        $resets = $this->app['config']->get('phwoo.resets', []);
+        $resets = $this->app['config']->get('phpwoo.resets', []);
         foreach ($resets as $abstract) {
             if (is_subclass_of($abstract, ServiceProvider::class)) {
                 $this->registerServiceProvider($abstract);
