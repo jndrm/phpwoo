@@ -1,5 +1,5 @@
 {
-    "name": "drmer/swoole",
+    "name": "drmer/phpwoo",
     "description": "Speed up your php applications with swoole!",
     "keywords": ["phpwoo", "drmer", "swoole", "server"],
     "license": "MIT",
