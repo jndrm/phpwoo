@@ -39,8 +39,6 @@ class ServeCommand extends Command
      */
     public function handle()
     {
-        Log::getMonolog()->popHandler();
-        Log::useDailyFiles(storage_path('logs/log-phpwoo.log'));
         with(new HttpServer)->start();
     }
 }
