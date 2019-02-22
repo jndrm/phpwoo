@@ -5,6 +5,7 @@ namespace Drmer\Phpwoo\Laravel;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Client;
+use Illuminate\Support\Facades\Facade;
 use App\Http\Kernel as HttpKernel;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -48,36 +49,58 @@ class HttpClient
      */
     public function handle($req)
     {
-        $params = [];
-        if ($req->post) {
-            $params = array_merge($params, $req->post);
-        }
-        $content = $req->rawContent();
-        $files = [];
-        if (is_array($req->files)) {
-            foreach ($req->files as $key => $file) {
-                $files[$key] = new UploadedFile($file['tmp_name'], $file['name'], $file['type'], $file['size'], $file['error']);
-            }
-        }
+        $params = $req->post ?: [];
+
+        $files = $this->transformFiles($req->files);
+
         $cookies = $req->cookie ?: [];
-        $server = [
+
+        $server = $this->transformHeadersToServerVars(array_merge($req->header, [
             'PATH_INFO' => array_get($req->server, 'path_info'),
-        ];
-        foreach ($req->header as $name => $value) {
-            $name = strtr(strtoupper($name), '-', '_');
-            $_name = $this->formatServerHeaderKey($name);
-            $server[$_name] = $value;
-        }
+            'X_REQUEST_ID' => Str::uuid()->toString(),
+        ]));
+
         $requestUri = $req->server['request_uri'];
         if (isset($req->server['query_string']) && $req->server['query_string']) {
             $requestUri .= "?" . $req->server['query_string'];
         }
-        $resp = $this->call(strtolower($req->server['request_method']), $requestUri, $params, $cookies, $files, $server, $content);
+
+        $resp = $this->call(
+            strtolower($req->server['request_method']),
+            $requestUri, $params, $cookies, $files,
+            $server, $req->rawContent()
+        );
+
         return [
             'status' => $resp->getStatusCode(),
             'headers' => $resp->headers,
             'body' => $resp->getContent(),
         ];
+    }
+
+    public function transformFiles($reqFiles)
+    {
+        $files = [];
+        foreach ((array)$reqFiles as $key => $file) {
+            $files[$key] = new UploadedFile($file['tmp_name'], $file['name'], $file['type'], $file['size'], $file['error']);
+        }
+        return $files;
+    }
+
+    /**
+     * Transform headers array to array of $_SERVER vars with HTTP_* format.
+     * @see https://github.com/laravel/framework/blob/5.6/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php
+     *
+     * @param  array  $headers
+     * @return array
+     */
+    protected function transformHeadersToServerVars(array $headers)
+    {
+        return collect($headers)->mapWithKeys(function ($value, $name) {
+            $name = strtr(strtoupper($name), '-', '_');
+
+            return [$this->formatServerHeaderKey($name) => $value];
+        })->all();
     }
 
     /**
@@ -108,7 +131,7 @@ class HttpClient
      * @param  string  $content
      * @return \Illuminate\Foundation\Response
      */
-    public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    protected function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {
         $kernel = $this->app->make(HttpKernel::class);
 
@@ -116,10 +139,16 @@ class HttpClient
             $this->prepareUrlForRequest($uri), $method, $parameters,
             $cookies, $files, array_replace($this->serverVariables, $server), $content
         );
+
         $response = $kernel->handle(
             $request = Request::createFromBase($symfonyRequest)
         );
+
         $kernel->terminate($request, $response);
+
+        $this->flushSession();
+
+        $this->reset();
 
         return $response;
     }
@@ -146,5 +175,49 @@ class HttpClient
     public function createApplication()
     {
         return require base_path('/bootstrap/app.php');
+    }
+
+    public function flushSession()
+    {
+        if ($this->app->resolved('session')) {
+            foreach ($this->app['session']->getDrivers() as $driver) {
+                $driver->flush();
+                $driver->migrate();
+            }
+        }
+    }
+
+    protected function reset()
+    {
+        $this->flushSession();
+
+        $resets = $this->app['config']->get('phwoo.resets', []);
+        foreach ($resets as $abstract) {
+            if (is_subclass_of($abstract, ServiceProvider::class)) {
+                $this->registerServiceProvider($abstract);
+            } elseif ($this->app->has($abstract)) {
+                $this->rebindAbstract($abstract);
+
+                Facade::clearResolvedInstance($abstract);
+            }
+        }
+    }
+
+    /**
+     * Rebind abstract.
+     *
+     * @param string $abstract
+     * @return void
+     */
+    protected function rebindAbstract($abstract)
+    {
+        $abstract = $this->app->getAlias($abstract);
+        $binding = array_get($this->app->getBindings(), $abstract);
+
+        unset($this->app[$abstract]);
+
+        if ($binding) {
+            $this->app->bind($abstract, $binding['concrete'], $binding['shared']);
+        }
     }
 }
