@@ -29,7 +29,7 @@ class HttpClient
 
     private static $instance;
 
-    public function __construct()
+    private function __construct()
     {
         $this->app = $this->createApplication();
     }
@@ -78,7 +78,7 @@ class HttpClient
         ];
     }
 
-    public function transformFiles($reqFiles)
+    protected function transformFiles($reqFiles)
     {
         $files = [];
         foreach ((array)$reqFiles as $key => $file) {
@@ -172,12 +172,12 @@ class HttpClient
         return trim($uri, '/');
     }
 
-    public function createApplication()
+    protected function createApplication()
     {
         return require base_path('/bootstrap/app.php');
     }
 
-    public function flushSession()
+    protected function flushSession()
     {
         if ($this->app->resolved('session')) {
             foreach ($this->app['session']->getDrivers() as $driver) {
