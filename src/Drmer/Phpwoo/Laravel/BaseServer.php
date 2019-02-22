@@ -12,6 +12,8 @@ abstract class BaseServer
 
     protected $cache = null;
 
+    protected $name = null;
+
     public function __construct()
     {
     	$this->cache = new RequestCache();
@@ -21,6 +23,8 @@ abstract class BaseServer
         $this->host = config('phpwoo.host');
 
         $this->port = config('phpwoo.port');
+
+        $this->name = config('phpwoo.name');
     }
 
 	public function sendResp($resp, $res)
@@ -50,7 +54,9 @@ abstract class BaseServer
                 $cookie->isHttpOnly()
             );
         }
-        $resp->header('server', $this->getName());
+        if ($name = $this->getName()) {
+            $resp->header('server', $name);
+        }
         $resp->end($res['body']);
     }
 
@@ -69,7 +75,7 @@ abstract class BaseServer
 
     public function getName()
     {
-    	return 'phpwoo-server';
+        return $this->name;
     }
 
     public abstract function httpCall($req);
