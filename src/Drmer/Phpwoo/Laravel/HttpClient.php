@@ -57,8 +57,8 @@ class HttpClient
 
         $server = $this->transformHeadersToServerVars(array_merge($req->header, [
             'PATH_INFO' => array_get($req->server, 'path_info'),
-            'X_REQUEST_ID' => Str::uuid()->toString(),
         ]));
+        $server['X_REQUEST_ID'] = Str::uuid()->toString();
 
         $requestUri = $req->server['request_uri'];
         if (isset($req->server['query_string']) && $req->server['query_string']) {
