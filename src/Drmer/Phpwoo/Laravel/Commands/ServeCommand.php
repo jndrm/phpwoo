@@ -90,7 +90,7 @@ class ServeCommand extends Command implements ServerCallbackInterface
 
     private function pidPath()
     {
-        return storage_path('phpwoo.pid');
+        return storage_path('app/phpwoo.pid');
     }
 
     private function isRunning($pid)
