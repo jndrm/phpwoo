@@ -31,15 +31,21 @@ class HttpServer extends BaseServer
 
     public function registerEvents()
     {
-        $this->http->on("start", function ($server) {
-            echo "Phpwoo http server is started at http://{$this->host}:{$this->port}\n";
-        });
-
+        $this->http->on('start', [$this, 'onStart']);
         $this->http->on('request', array($this, 'onRequest'));
     }
 
     public function httpCall($req)
     {
     	return HttpClient::getInstance()->handle($req);
+    }
+
+    public function onStart($server)
+    {
+        echo "Phpwoo http server is started at http://{$this->host}:{$this->port}\n";
+        if (!$this->callback) {
+            return;
+        }
+        $this->callback->onStart($server);
     }
 }

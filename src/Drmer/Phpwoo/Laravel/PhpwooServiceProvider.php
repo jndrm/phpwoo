@@ -3,6 +3,7 @@
 namespace Drmer\Phpwoo\Laravel;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
 
 class PhpwooServiceProvider extends ServiceProvider
 {
@@ -30,6 +31,10 @@ class PhpwooServiceProvider extends ServiceProvider
         ]);
 
         $this->mergeConfigFrom($this->configPath(), 'phpwoo');
+
+        Request::macro('xId', function() {
+            return $this->server('X_REQUEST_ID');
+        });
     }
 
     protected function configPath()

@@ -2,6 +2,8 @@
 
 namespace Drmer\Phpwoo\Laravel;
 
+use Drmer\Phpwoo\Laravel\ServerCallbackInterface;
+
 abstract class BaseServer
 {
 	protected $enableCache = true;
@@ -14,7 +16,9 @@ abstract class BaseServer
 
     protected $name = null;
 
-    public function __construct()
+    protected $callback = null;
+
+    public function __construct(ServerCallbackInterface $callback=null)
     {
     	$this->cache = new RequestCache();
 
@@ -25,6 +29,8 @@ abstract class BaseServer
         $this->port = config('phpwoo.port');
 
         $this->name = config('phpwoo.name');
+
+        $this->callback = $callback;
     }
 
 	public function sendResp($resp, $res)
