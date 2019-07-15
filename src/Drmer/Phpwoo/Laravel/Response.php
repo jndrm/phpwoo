@@ -52,6 +52,10 @@ class Response
         if ($name = $this->getName()) {
             $resp->header('server', $name);
         }
+        if (strtolower($this->req->server['request_method']) == 'head') {
+            $resp->end();
+            return;
+        }
         $resp->end($res['body']);
     }
 
