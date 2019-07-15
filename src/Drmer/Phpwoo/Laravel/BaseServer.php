@@ -2,6 +2,8 @@
 
 namespace Drmer\Phpwoo\Laravel;
 
+use Swoole\Http\Request as SwooleRequest;
+use Swoole\Http\Response as SwooleResponse;
 use Drmer\Phpwoo\Laravel\ServerCallbackInterface;
 
 abstract class BaseServer
@@ -13,8 +15,6 @@ abstract class BaseServer
     protected $port = '8264';
 
     protected $cache = null;
-
-    protected $name = null;
 
     protected $callback = null;
 
@@ -28,45 +28,10 @@ abstract class BaseServer
 
         $this->port = config('phpwoo.port');
 
-        $this->name = config('phpwoo.name');
-
         $this->callback = $callback;
     }
 
-	public function sendResp($resp, $res)
-    {
-        $resp->status($res['status']);
-        foreach ($res['headers']->all() as $key => $values) {
-            if (in_array(strtolower($key), ['server', 'x-powered-by'])) {
-                continue;
-            }
-            if (strtolower($key) == 'set-cookie') {
-                continue;
-            }
-            if (count($values) == 1) {
-                $resp->header($key, $values[0]);
-            } else {
-                $resp->header($key, implode(";", $values));
-            }
-        }
-        foreach ($res['headers']->getCookies() as $cookie) {
-            $resp->cookie(
-                $cookie->getName(),
-                $cookie->getValue(),
-                $cookie->getExpiresTime(),
-                $cookie->getPath(),
-                $cookie->getDomain(),
-                $cookie->isSecure(),
-                $cookie->isHttpOnly()
-            );
-        }
-        if ($name = $this->getName()) {
-            $resp->header('server', $name);
-        }
-        $resp->end($res['body']);
-    }
-
-    public function onRequest($req, $resp)
+    public function onRequest(SwooleRequest $req, SwooleResponse $resp)
     {
     	$cache = $this->cache;
     	$res = $this->enableCache ? $cache->get($req) : null;
@@ -76,12 +41,8 @@ abstract class BaseServer
                 $cache->put($req, $res);
             }
         }
-        $this->sendResp($resp, $res);
-    }
 
-    public function getName()
-    {
-        return $this->name;
+        with(new Response($req, $resp))->send($res);
     }
 
     public abstract function httpCall($req);
