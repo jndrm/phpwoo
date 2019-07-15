@@ -31,7 +31,7 @@ abstract class BaseServer
     {
         $resp->status($res['status']);
         foreach ($res['headers']->all() as $key => $values) {
-            if (in_array(strtolower($key), ['content-length', 'server', 'x-powered-by'])) {
+            if (in_array(strtolower($key), ['server', 'x-powered-by'])) {
                 continue;
             }
             if (strtolower($key) == 'set-cookie') {
